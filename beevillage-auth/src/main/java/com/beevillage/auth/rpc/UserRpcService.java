@@ -1,0 +1,72 @@
+package com.beevillage.auth.rpc;
+
+import com.beevillage.common.response.Result;
+import com.beevillage.user.api.dto.req.FindUserByPhoneReqDTO;
+import com.beevillage.user.api.dto.req.RegisterUserReqDTO;
+import com.beevillage.user.api.dto.req.UpdateUserPasswordReqDTO;
+import com.beevillage.user.api.dto.resp.FindUserByPhoneRspDTO;
+import com.beevillage.user.api.feign.UserFeignApi;
+import jakarta.annotation.Resource;
+import org.springframework.stereotype.Component;
+
+/**
+ * 用户服务
+ *
+ * @author Jason Feng
+ * @since 2026-02-27 16:43
+ */
+@Component
+public class UserRpcService {
+
+    @Resource
+    private UserFeignApi userFeignApi;
+
+    /**
+     * 用户注册
+     *
+     * @param phone
+     * @return
+     */
+    public Long registerUser(String phone) {
+        RegisterUserReqDTO registerUserReqDTO = new RegisterUserReqDTO();
+        registerUserReqDTO.setPhone(phone);
+
+        Result<Long> response = userFeignApi.registerUser(registerUserReqDTO);
+
+        if (!response.isSuccess()) {
+            return null;
+        }
+        return response.getData();
+    }
+
+    /**
+     * 根据手机号查询用户信息
+     *
+     * @param phone
+     * @return
+     */
+    public FindUserByPhoneRspDTO findUserByPhone(String phone) {
+        FindUserByPhoneReqDTO findUserByPhoneReqDTO = new FindUserByPhoneReqDTO();
+        findUserByPhoneReqDTO.setPhone(phone);
+
+        Result<FindUserByPhoneRspDTO> response = userFeignApi.findByPhone(findUserByPhoneReqDTO);
+
+        if (!response.isSuccess()) {
+            return null;
+        }
+
+        return response.getData();
+    }
+
+    /**
+     * 密码更新
+     *
+     * @param encodePassword
+     */
+    public void updatePassword(String encodePassword) {
+        UpdateUserPasswordReqDTO updateUserPasswordReqDTO = new UpdateUserPasswordReqDTO();
+        updateUserPasswordReqDTO.setEncodePassword(encodePassword);
+
+        userFeignApi.updatePassword(updateUserPasswordReqDTO);
+    }
+}

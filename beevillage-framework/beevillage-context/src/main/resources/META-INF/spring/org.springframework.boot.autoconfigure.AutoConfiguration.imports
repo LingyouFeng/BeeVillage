@@ -1,0 +1,2 @@
+com.beevillage.context.config.ContextAutoConfiguration
+com.beevillage.context.config.FeignContextAutoConfiguration

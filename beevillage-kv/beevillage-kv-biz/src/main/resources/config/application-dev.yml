@@ -1,0 +1,5 @@
+spring:
+  cassandra:
+    keyspace-name: beevillage
+    contact-points: 172.31.21.252
+    port: 9042

@@ -1,0 +1,24 @@
+package com.beevillage.kv.api.dto.req;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * 查询笔记内容
+ *
+ * @author Jason Feng
+ * @since 2026-03-01 13:48
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class FindNoteContentReqDTO {
+
+    @NotBlank(message = "笔记 ID 不能为空")
+    private String noteId;
+
+}
