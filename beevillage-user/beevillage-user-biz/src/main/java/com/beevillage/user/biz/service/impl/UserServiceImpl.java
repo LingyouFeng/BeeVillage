@@ -22,6 +22,7 @@ import com.beevillage.user.biz.domain.mapper.UserRoleDOMapper;
 import com.beevillage.user.biz.enums.SexEnum;
 import com.beevillage.user.biz.enums.UserResultCodeEnum;
 import com.beevillage.user.biz.model.UpdateUserInfoReqVO;
+import com.beevillage.user.biz.rpc.LeafRpcService;
 import com.beevillage.user.biz.rpc.OssRpcService;
 import com.beevillage.user.biz.service.UserService;
 import com.google.common.base.Preconditions;
@@ -58,6 +59,8 @@ public class UserServiceImpl implements UserService {
     private OssRpcService ossRpcService;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
+    @Resource
+    private LeafRpcService leafRpcService;
 
     /**
      * 更新用户信息
@@ -172,12 +175,20 @@ public class UserServiceImpl implements UserService {
 
         // 否则注册新用户
         // 获取全局自增的蜜蜂村 ID
-        Long beevillageId = redisTemplate.opsForValue().increment(RedisKeyConstants.ID_GENERATOR);
+        // Long beevillageId = redisTemplate.opsForValue().increment(RedisKeyConstants.ID_GENERATOR);
+
+        // RPC: 调用分布式 ID 生成服务生成小哈书 ID
+        String beevillageId = leafRpcService.getBeevillageId();
+
+        // RPC: 调用分布式 ID 生成服务生成用户 ID
+        String userIdStr = leafRpcService.getUserId();
+        Long userId = Long.valueOf(userIdStr);
 
         UserDO userDO = UserDO.builder()
+                .id(userId)
                 .phone(phone)
                 .beevillageId(String.valueOf(beevillageId))
-                .nickname("小红薯" + beevillageId)
+                .nickname("蜜蜂村" + beevillageId)
                 .status(StatusEnum.ENABLE.getValue())
                 .createTime(LocalDateTime.now())
                 .updateTime(LocalDateTime.now())
@@ -188,7 +199,7 @@ public class UserServiceImpl implements UserService {
         userDOMapper.insertSelective(userDO);
 
         // 获取刚刚添加入库的用户 ID
-        Long userId = userDO.getId();
+        // Long userId = userDO.getId();
 
         // 给该用户分配一个默认角色
         UserRoleDO userRoleDO = UserRoleDO.builder()
