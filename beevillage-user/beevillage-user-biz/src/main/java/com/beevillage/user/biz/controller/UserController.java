@@ -1,9 +1,11 @@
 package com.beevillage.user.biz.controller;
 
 import com.beevillage.common.response.Result;
+import com.beevillage.user.api.dto.req.FindUserByIdReqDTO;
 import com.beevillage.user.api.dto.req.FindUserByPhoneReqDTO;
 import com.beevillage.user.api.dto.req.RegisterUserReqDTO;
 import com.beevillage.user.api.dto.req.UpdateUserPasswordReqDTO;
+import com.beevillage.user.api.dto.resp.FindUserByIdRspDTO;
 import com.beevillage.user.api.dto.resp.FindUserByPhoneRspDTO;
 import com.beevillage.user.biz.model.UpdateUserInfoReqVO;
 import com.beevillage.user.biz.service.UserService;
@@ -70,5 +72,16 @@ public class UserController {
     @PostMapping("/password/update")
     public Result<?> updatePassword(@Valid @RequestBody UpdateUserPasswordReqDTO updateUserPasswordReqDTO) {
         return userService.updatePassword(updateUserPasswordReqDTO);
+    }
+
+    /**
+     * 密码更新
+     *
+     * @param findUserByIdReqDTO    用户 id
+     * @return                      响应结果
+     */
+    @PostMapping("/findById")
+    public Result<FindUserByIdRspDTO> findById(@Valid @RequestBody FindUserByIdReqDTO findUserByIdReqDTO) {
+        return userService.findById(findUserByIdReqDTO);
     }
 }

@@ -2,9 +2,11 @@ package com.beevillage.user.api.feign;
 
 import com.beevillage.common.response.Result;
 import com.beevillage.user.api.constant.ApiConstants;
+import com.beevillage.user.api.dto.req.FindUserByIdReqDTO;
 import com.beevillage.user.api.dto.req.FindUserByPhoneReqDTO;
 import com.beevillage.user.api.dto.req.RegisterUserReqDTO;
 import com.beevillage.user.api.dto.req.UpdateUserPasswordReqDTO;
+import com.beevillage.user.api.dto.resp.FindUserByIdRspDTO;
 import com.beevillage.user.api.dto.resp.FindUserByPhoneRspDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,4 +48,13 @@ public interface UserFeignApi {
      */
     @PostMapping(value = PREFIX + "/password/update")
     Result<?> updatePassword(@RequestBody UpdateUserPasswordReqDTO updateUserPasswordReqDTO);
+
+    /**
+     * 根据用户 ID 查询用户信息
+     *
+     * @param findUserByIdReqDTO
+     * @return
+     */
+    @PostMapping(value = PREFIX + "/findById")
+    Result<FindUserByIdRspDTO> findById(@RequestBody FindUserByIdReqDTO findUserByIdReqDTO);
 }

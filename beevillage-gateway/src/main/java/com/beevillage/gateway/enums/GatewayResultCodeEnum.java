@@ -11,7 +11,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum ResultCodeEnum implements BaseExceptionInterface {
+public enum GatewayResultCodeEnum implements BaseExceptionInterface {
 
     SYSTEM_ERROR(500, "服务器内部异常，请稍后重试"),
     UNAUTHORIZED(401, "权限不足");

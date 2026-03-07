@@ -19,6 +19,7 @@
         <module>beevillage-user</module>
         <module>beevillage-kv</module>
         <module>beevillage-leaf</module>
+        <module>beevillage-note</module>
     </modules>
 
     <properties>
@@ -61,6 +62,8 @@
         <minio.version>8.2.1</minio.version>
         <!-- feign-form 版本 -->
         <feign-form.version>3.8.0</feign-form.version>
+        <!-- caffeine 版本 -->
+        <caffeine.version>3.1.8</caffeine.version>
     </properties>
 
     <dependencyManagement>
@@ -230,6 +233,13 @@
                 <groupId>io.github.openfeign.form</groupId>
                 <artifactId>feign-form</artifactId>
                 <version>${feign-form.version}</version>
+            </dependency>
+
+            <!-- Caffeine 本地缓存 -->
+            <dependency>
+                <groupId>com.github.ben-manes.caffeine</groupId>
+                <artifactId>caffeine</artifactId>
+                <version>${caffeine.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

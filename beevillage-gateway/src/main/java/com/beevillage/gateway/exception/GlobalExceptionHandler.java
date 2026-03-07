@@ -4,7 +4,7 @@ import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotPermissionException;
 import com.alibaba.fastjson.JSON;
 import com.beevillage.common.response.Result;
-import com.beevillage.gateway.enums.ResultCodeEnum;
+import com.beevillage.gateway.enums.GatewayResultCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.core.io.buffer.DataBufferFactory;
@@ -41,17 +41,17 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
             // 设置 401 状态码
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             // 构建响应结果
-            result = Result.fail(ResultCodeEnum.UNAUTHORIZED, ex.getMessage());
+            result = Result.fail(GatewayResultCodeEnum.UNAUTHORIZED, ex.getMessage());
         }
         // 无权限异常
         else if (ex instanceof NotPermissionException) {
             // 权限认证失败时，设置 401 状态码
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            result = Result.fail(ResultCodeEnum.UNAUTHORIZED);
+            result = Result.fail(GatewayResultCodeEnum.UNAUTHORIZED);
         }
         // 其他异常，则统一提示 “系统繁忙” 错误
         else {
-            result = Result.fail(ResultCodeEnum.SYSTEM_ERROR);
+            result = Result.fail(GatewayResultCodeEnum.SYSTEM_ERROR);
         }
 
         // 设置响应头的内容类型为 application/json;charset=UTF-8，表示响应体为 JSON 格式
