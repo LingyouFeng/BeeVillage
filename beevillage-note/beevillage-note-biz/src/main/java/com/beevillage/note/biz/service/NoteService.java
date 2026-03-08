@@ -1,10 +1,7 @@
 package com.beevillage.note.biz.service;
 
 import com.beevillage.common.response.Result;
-import com.beevillage.note.biz.model.vo.FindNoteDetailReqVO;
-import com.beevillage.note.biz.model.vo.FindNoteDetailRspVO;
-import com.beevillage.note.biz.model.vo.PublishNoteReqVO;
-import com.beevillage.note.biz.model.vo.UpdateNoteReqVO;
+import com.beevillage.note.biz.model.vo.*;
 
 /**
  * 笔记业务
@@ -35,4 +32,31 @@ public interface NoteService {
      * @return
      */
     Result<?> updateNote(UpdateNoteReqVO updateNoteReqVO);
+
+    /**
+     * 删除本地笔记缓存
+     * @param noteId
+     */
+    void deleteNoteLocalCache(Long noteId);
+
+    /**
+     * 删除笔记
+     * @param deleteNoteReqVO
+     * @return
+     */
+    Result<?> deleteNote(DeleteNoteReqVO deleteNoteReqVO);
+
+    /**
+     * 笔记仅对自己可见
+     * @param updateNoteVisibleOnlyMeReqVO
+     * @return
+     */
+    Result<?> visibleOnlyMe(UpdateNoteVisibleOnlyMeReqVO updateNoteVisibleOnlyMeReqVO);
+
+    /**
+     * 笔记置顶 / 取消置顶
+     * @param topNoteReqVO
+     * @return
+     */
+    Result<?> topNote(TopNoteReqVO topNoteReqVO);
 }

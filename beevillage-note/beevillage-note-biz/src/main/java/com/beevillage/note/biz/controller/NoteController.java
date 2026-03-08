@@ -1,10 +1,7 @@
 package com.beevillage.note.biz.controller;
 
 import com.beevillage.common.response.Result;
-import com.beevillage.note.biz.model.vo.FindNoteDetailReqVO;
-import com.beevillage.note.biz.model.vo.FindNoteDetailRspVO;
-import com.beevillage.note.biz.model.vo.PublishNoteReqVO;
-import com.beevillage.note.biz.model.vo.UpdateNoteReqVO;
+import com.beevillage.note.biz.model.vo.*;
 import com.beevillage.note.biz.service.NoteService;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
@@ -43,4 +40,18 @@ public class NoteController {
         return noteService.updateNote(updateNoteReqVO);
     }
 
+    @PostMapping(value = "/delete")
+    public Result<?> deleteNote(@Valid @RequestBody DeleteNoteReqVO deleteNoteReqVO) {
+        return noteService.deleteNote(deleteNoteReqVO);
+    }
+
+    @PostMapping(value = "/visible/onlyme")
+    public Result<?> visibleOnlyMe(@Valid @RequestBody UpdateNoteVisibleOnlyMeReqVO updateNoteVisibleOnlyMeReqVO) {
+        return noteService.visibleOnlyMe(updateNoteVisibleOnlyMeReqVO);
+    }
+
+    @PostMapping(value = "/top")
+    public Result<?> topNote(@Valid @RequestBody TopNoteReqVO topNoteReqVO) {
+        return noteService.topNote(topNoteReqVO);
+    }
 }
