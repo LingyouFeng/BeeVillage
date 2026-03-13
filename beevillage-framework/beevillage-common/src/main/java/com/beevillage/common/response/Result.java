@@ -21,7 +21,7 @@ public class Result<T> {
 
     private T data;
 
-    private Result() {}
+    protected Result() {}
 
     private static <T> Result<T> build(Boolean isSuccess, Integer code, String message, T data) {
         Result<T> result = new Result<>();

@@ -1,10 +1,7 @@
 package com.beevillage.user.biz.controller;
 
 import com.beevillage.common.response.Result;
-import com.beevillage.user.api.dto.req.FindUserByIdReqDTO;
-import com.beevillage.user.api.dto.req.FindUserByPhoneReqDTO;
-import com.beevillage.user.api.dto.req.RegisterUserReqDTO;
-import com.beevillage.user.api.dto.req.UpdateUserPasswordReqDTO;
+import com.beevillage.user.api.dto.req.*;
 import com.beevillage.user.api.dto.resp.FindUserByIdRspDTO;
 import com.beevillage.user.api.dto.resp.FindUserByPhoneRspDTO;
 import com.beevillage.user.biz.model.UpdateUserInfoReqVO;
@@ -16,6 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  *
@@ -75,7 +74,7 @@ public class UserController {
     }
 
     /**
-     * 密码更新
+     * 根据单个 id 查询用户信息
      *
      * @param findUserByIdReqDTO    用户 id
      * @return                      响应结果
@@ -83,5 +82,16 @@ public class UserController {
     @PostMapping("/findById")
     public Result<FindUserByIdRspDTO> findById(@Valid @RequestBody FindUserByIdReqDTO findUserByIdReqDTO) {
         return userService.findById(findUserByIdReqDTO);
+    }
+
+    /**
+     * 根据多个 ids 查询用户信息
+     *
+     * @param findUsersByIdsReqDTO  用户 id 数组
+     * @return                      响应结果
+     */
+    @PostMapping("/findByIds")
+    public Result<List<FindUserByIdRspDTO>> findByIds(@Valid @RequestBody FindUsersByIdsReqDTO findUsersByIdsReqDTO) {
+        return userService.findByIds(findUsersByIdsReqDTO);
     }
 }

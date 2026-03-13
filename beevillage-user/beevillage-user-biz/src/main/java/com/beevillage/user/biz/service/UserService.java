@@ -1,13 +1,12 @@
 package com.beevillage.user.biz.service;
 
 import com.beevillage.common.response.Result;
-import com.beevillage.user.api.dto.req.FindUserByIdReqDTO;
-import com.beevillage.user.api.dto.req.FindUserByPhoneReqDTO;
-import com.beevillage.user.api.dto.req.RegisterUserReqDTO;
-import com.beevillage.user.api.dto.req.UpdateUserPasswordReqDTO;
+import com.beevillage.user.api.dto.req.*;
 import com.beevillage.user.api.dto.resp.FindUserByIdRspDTO;
 import com.beevillage.user.api.dto.resp.FindUserByPhoneRspDTO;
 import com.beevillage.user.biz.model.UpdateUserInfoReqVO;
+
+import java.util.List;
 
 /**
  *
@@ -55,4 +54,12 @@ public interface UserService {
      * @return
      */
     Result<FindUserByIdRspDTO> findById(FindUserByIdReqDTO findUserByIdReqDTO);
+
+    /**
+     * 批量根据用户 ID 查询用户信息
+     *
+     * @param findUsersByIdsReqDTO
+     * @return
+     */
+    Result<List<FindUserByIdRspDTO>> findByIds(FindUsersByIdsReqDTO findUsersByIdsReqDTO);
 }

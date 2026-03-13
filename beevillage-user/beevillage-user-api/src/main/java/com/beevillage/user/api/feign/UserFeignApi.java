@@ -2,15 +2,14 @@ package com.beevillage.user.api.feign;
 
 import com.beevillage.common.response.Result;
 import com.beevillage.user.api.constant.ApiConstants;
-import com.beevillage.user.api.dto.req.FindUserByIdReqDTO;
-import com.beevillage.user.api.dto.req.FindUserByPhoneReqDTO;
-import com.beevillage.user.api.dto.req.RegisterUserReqDTO;
-import com.beevillage.user.api.dto.req.UpdateUserPasswordReqDTO;
+import com.beevillage.user.api.dto.req.*;
 import com.beevillage.user.api.dto.resp.FindUserByIdRspDTO;
 import com.beevillage.user.api.dto.resp.FindUserByPhoneRspDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
 
 /**
  *
@@ -57,4 +56,13 @@ public interface UserFeignApi {
      */
     @PostMapping(value = PREFIX + "/findById")
     Result<FindUserByIdRspDTO> findById(@RequestBody FindUserByIdReqDTO findUserByIdReqDTO);
+
+    /**
+     * 批量查询用户信息
+     *
+     * @param findUsersByIdsReqDTO
+     * @return
+     */
+    @PostMapping(value = PREFIX + "/findByIds")
+    Result<List<FindUserByIdRspDTO>> findByIds(@RequestBody FindUsersByIdsReqDTO findUsersByIdsReqDTO);
 }

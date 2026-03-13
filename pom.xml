@@ -20,6 +20,7 @@
         <module>beevillage-kv</module>
         <module>beevillage-leaf</module>
         <module>beevillage-note</module>
+        <module>beevillage-user-relation</module>
     </modules>
 
     <properties>
