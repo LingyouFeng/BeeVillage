@@ -21,6 +21,7 @@
         <module>beevillage-leaf</module>
         <module>beevillage-note</module>
         <module>beevillage-user-relation</module>
+        <module>beevillage-count</module>
     </modules>
 
     <properties>
@@ -67,6 +68,8 @@
         <caffeine.version>3.1.8</caffeine.version>
         <!-- rocketmq 版本 -->
         <rocketmq.version>2.2.3</rocketmq.version>
+        <!-- buffertrigger 版本 -->
+        <buffertrigger.version>0.2.21</buffertrigger.version>
     </properties>
 
     <dependencyManagement>
@@ -250,6 +253,13 @@
                 <groupId>org.apache.rocketmq</groupId>
                 <artifactId>rocketmq-spring-boot-starter</artifactId>
                 <version>${rocketmq.version}</version>
+            </dependency>
+
+            <!-- 快手 Buffer Trigger -->
+            <dependency>
+                <groupId>com.github.phantomthief</groupId>
+                <artifactId>buffer-trigger</artifactId>
+                <version>${buffertrigger.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
