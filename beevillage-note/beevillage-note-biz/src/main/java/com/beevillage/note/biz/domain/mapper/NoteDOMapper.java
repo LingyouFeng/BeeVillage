@@ -27,4 +27,13 @@ public interface NoteDOMapper {
     int updateVisibleOnlyMe(NoteDO noteDO);
 
     int updateIsTop(NoteDO noteDO);
+
+    int selectCountByNoteId(Long noteId);
+
+    /**
+     * 查询笔记的发布者用户 ID
+     * @param noteId
+     * @return
+     */
+    Long selectCreatorIdByNoteId(Long noteId);
 }

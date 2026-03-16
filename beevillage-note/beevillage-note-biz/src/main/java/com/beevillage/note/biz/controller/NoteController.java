@@ -6,6 +6,7 @@ import com.beevillage.note.biz.service.NoteService;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,5 +54,25 @@ public class NoteController {
     @PostMapping(value = "/top")
     public Result<?> topNote(@Valid @RequestBody TopNoteReqVO topNoteReqVO) {
         return noteService.topNote(topNoteReqVO);
+    }
+
+    @PostMapping(value = "/like")
+    public Result<?> likeNote(@Validated @RequestBody LikeNoteReqVO likeNoteReqVO) {
+        return noteService.likeNote(likeNoteReqVO);
+    }
+
+    @PostMapping(value = "/unlike")
+    public Result<?> unlikeNote(@Validated @RequestBody UnlikeNoteReqVO unlikeNoteReqVO) {
+        return noteService.unlikeNote(unlikeNoteReqVO);
+    }
+
+    @PostMapping(value = "/collect")
+    public Result<?> collectNote(@Validated @RequestBody CollectNoteReqVO collectNoteReqVO) {
+        return noteService.collectNote(collectNoteReqVO);
+    }
+
+    @PostMapping(value = "/uncollect")
+    public Result<?> unCollectNote(@Validated @RequestBody UnCollectNoteReqVO unCollectNoteReqVO) {
+        return noteService.unCollectNote(unCollectNoteReqVO);
     }
 }

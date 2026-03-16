@@ -1,4 +1,4 @@
-package com.beevillage.count.biz.domain.dataobject;
+package com.beevillage.note.biz.domain.dataobject;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * 笔记点赞实体类
+ * 笔记收藏实体类
  *
  * @author Jason Feng
  * @since 2026-03-13 17:05
@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class NoteLikeDO {
+public class NoteCollectionDO {
 
     private Long id;
 
