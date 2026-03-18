@@ -461,9 +461,21 @@ public class NoteServiceImpl implements NoteService {
 
         // 更新笔记元数据表 t_note
         String content = updateNoteReqVO.getContent();
+
+        // 笔记内容更新
+        // 查询此篇笔记内容对应的 UUID
+        NoteDO noteDO1 = noteDOMapper.selectByPrimaryKey(noteId);
+        String contentUuid = noteDO1.getContentUuid();
+
+        // 如果之前没有笔记，更新后有笔记，则分配一个新的笔记内容 UUID
+        if (StringUtils.isBlank(contentUuid) && StringUtils.isNotBlank(content)) {
+            contentUuid = UUID.randomUUID().toString();
+        }
+
         NoteDO noteDO = NoteDO.builder()
                 .id(noteId)
                 .isContentEmpty(StringUtils.isBlank(content))
+                .contentUuid(contentUuid)
                 .imgUris(imgUris)
                 .title(updateNoteReqVO.getTitle())
                 .topicId(updateNoteReqVO.getTopicId())
@@ -501,21 +513,13 @@ public class NoteServiceImpl implements NoteService {
         rocketMQTemplate.syncSend(MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, noteId);
         log.info("====> MQ：删除笔记本地缓存发送成功...");
 
-        // 笔记内容更新
-        // 查询此篇笔记内容对应的 UUID
-        NoteDO noteDO1 = noteDOMapper.selectByPrimaryKey(noteId);
-        String contentUuid = noteDO1.getContentUuid();
-
         // 笔记内容是否更新成功
         boolean isUpdateContentSuccess = false;
-        if (StringUtils.isBlank(content)) {
-            // 若笔记内容为空，则删除 K-V 存储
-            isUpdateContentSuccess = keyValueRpcService.deleteNoteContent(contentUuid);
-        } else {
-            // 若将无内容的笔记，更新为了有内容的笔记，需要重新生成 UUID
-            contentUuid = StringUtils.isBlank(contentUuid) ? UUID.randomUUID().toString() : contentUuid;
-            // 调用 K-V 更新短文本
-            isUpdateContentSuccess = keyValueRpcService.saveNoteContent(contentUuid, content);
+        if (StringUtils.isNotBlank(contentUuid)) {
+            // 若笔记内容为空，则删除 K-V 存储，否则调用 K-V 插入/更新短文本
+            isUpdateContentSuccess = StringUtils.isNotBlank(content) ?
+                    keyValueRpcService.saveNoteContent(contentUuid, content) :
+                    keyValueRpcService.deleteNoteContent(contentUuid);
         }
 
         // 如果更新失败，抛出业务异常，回滚事务

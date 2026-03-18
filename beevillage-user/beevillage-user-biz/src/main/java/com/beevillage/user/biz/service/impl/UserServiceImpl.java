@@ -175,6 +175,8 @@ public class UserServiceImpl implements UserService {
             // 更新用户信息
             userDO.setUpdateTime(LocalDateTime.now());
             userDOMapper.updateByPrimaryKeySelective(userDO);
+
+            // TODO: 更新本地缓存以及redis
         }
         return Result.success();
     }
