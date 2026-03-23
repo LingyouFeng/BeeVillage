@@ -76,6 +76,8 @@
         <xxl-job.version>2.4.1</xxl-job.version>
         <!-- elasticsearch 版本 -->
         <elasticsearch.version>7.3.0</elasticsearch.version>
+        <!-- canal 版本 -->
+        <canal.version>1.1.7</canal.version>
     </properties>
 
     <dependencyManagement>
@@ -113,6 +115,12 @@
             <dependency>
                 <groupId>com.beevillage</groupId>
                 <artifactId>beevillage-leaf-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.beevillage</groupId>
+                <artifactId>beevillage-search-api</artifactId>
                 <version>${revision}</version>
             </dependency>
 
@@ -292,6 +300,25 @@
                 <groupId>org.elasticsearch</groupId>
                 <artifactId>elasticsearch</artifactId>
                 <version>${elasticsearch.version}</version>
+            </dependency>
+
+            <!-- Canal -->
+            <dependency>
+                <groupId>com.alibaba.otter</groupId>
+                <artifactId>canal.client</artifactId>
+                <version>${canal.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.otter</groupId>
+                <artifactId>canal.common</artifactId>
+                <version>${canal.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.otter</groupId>
+                <artifactId>canal.protocol</artifactId>
+                <version>${canal.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

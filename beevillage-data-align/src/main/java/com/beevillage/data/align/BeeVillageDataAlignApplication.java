@@ -3,6 +3,7 @@ package com.beevillage.data.align;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  * 数据对齐启动类
@@ -12,7 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @Slf4j
 @SpringBootApplication
-// @EnableFeignClients(basePackages = "com.beevillage")
+@EnableFeignClients(basePackages = "com.beevillage")
 public class BeeVillageDataAlignApplication {
 
     public static void main(String[] args) {

@@ -1,0 +1,24 @@
+package com.beevillage.search.api.dto;
+
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * 重建用户文档
+ *
+ * @author Jason Feng
+ * @since 2026-03-23 14:57
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class RebuildUserDocumentReqDTO {
+
+    @NotNull(message = "用户 ID 不能为空")
+    private Long id;
+
+}

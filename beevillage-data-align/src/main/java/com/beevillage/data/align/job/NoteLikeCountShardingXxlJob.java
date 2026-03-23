@@ -6,6 +6,7 @@ import com.beevillage.data.align.constant.TableConstants;
 import com.beevillage.data.align.domain.mapper.DeleteMapper;
 import com.beevillage.data.align.domain.mapper.SelectMapper;
 import com.beevillage.data.align.domain.mapper.UpdateMapper;
+import com.beevillage.data.align.rpc.SearchRpcService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import jakarta.annotation.Resource;
@@ -35,6 +36,8 @@ public class NoteLikeCountShardingXxlJob {
     private DeleteMapper deleteMapper;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
+    @Resource
+    private SearchRpcService searchRpcService;
 
     /**
      * 分片广播任务
@@ -73,7 +76,7 @@ public class NoteLikeCountShardingXxlJob {
 
             // 循环这一批发生变更的笔记 ID
             noteIds.forEach(noteId -> {
-                // 2: 对 t_note_like 关注表执行 count(*) 操作，获取关注总数
+                // 2: 对 t_note_like 点赞表执行 count(*) 操作，获取点赞总数
                 int likeTotal = selectMapper.selectCountFromNoteLikeTableByUserId(noteId);
 
                 // 3: 更新 t_note_count 表, 更新对应 Redis 缓存
@@ -89,6 +92,9 @@ public class NoteLikeCountShardingXxlJob {
                         redisTemplate.opsForHash().put(redisKey, RedisKeyConstants.FIELD_LIKE_TOTAL, likeTotal);
                     }
                 }
+
+                // 远程 RPC, 调用搜索服务，重新构建文档
+                searchRpcService.rebuildNoteDocument(noteId);
             });
 
             // 4. 批量物理删除这一批次记录
