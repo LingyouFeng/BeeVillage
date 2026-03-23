@@ -23,6 +23,7 @@
         <module>beevillage-user-relation</module>
         <module>beevillage-count</module>
         <module>beevillage-data-align</module>
+        <module>beevillage-search</module>
     </modules>
 
     <properties>
@@ -73,6 +74,8 @@
         <buffertrigger.version>0.2.21</buffertrigger.version>
         <!-- xxl-job 版本 -->
         <xxl-job.version>2.4.1</xxl-job.version>
+        <!-- elasticsearch 版本 -->
+        <elasticsearch.version>7.3.0</elasticsearch.version>
     </properties>
 
     <dependencyManagement>
@@ -270,6 +273,25 @@
                 <groupId>com.xuxueli</groupId>
                 <artifactId>xxl-job-core</artifactId>
                 <version>${xxl-job.version}</version>
+            </dependency>
+
+            <!-- Elasticsearch 分布式搜索引擎 -->
+            <dependency>
+                <groupId>org.elasticsearch.client</groupId>
+                <artifactId>elasticsearch-rest-high-level-client</artifactId>
+                <version>${elasticsearch.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.elasticsearch.client</groupId>
+                <artifactId>elasticsearch-rest-client</artifactId>
+                <version>${elasticsearch.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.elasticsearch</groupId>
+                <artifactId>elasticsearch</artifactId>
+                <version>${elasticsearch.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
