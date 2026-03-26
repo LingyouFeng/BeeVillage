@@ -37,6 +37,8 @@ import java.util.Objects;
 /**
  * 关注、取关 MQ 消费者
  *
+ * TODO: 可以优化改造成批量消费，用户A对用户B的关注/取关操作只需根据队列中最后一个
+ *
  * @author Jason Feng
  * @since 2026-03-11 19:45
  */

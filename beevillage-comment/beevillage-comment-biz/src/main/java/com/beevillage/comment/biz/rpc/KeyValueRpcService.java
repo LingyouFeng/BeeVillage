@@ -1,0 +1,62 @@
+package com.beevillage.comment.biz.rpc;
+
+import com.beevillage.comment.biz.model.bo.CommentBO;
+import com.beevillage.common.constant.DateConstants;
+import com.beevillage.common.response.Result;
+import com.beevillage.kv.api.dto.req.BatchAddCommentContentReqDTO;
+import com.beevillage.kv.api.dto.req.CommentContentReqDTO;
+import com.beevillage.kv.api.feign.KeyValueFeignApi;
+import com.google.common.collect.Lists;
+import jakarta.annotation.Resource;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+/**
+ * KV 键值服务
+ *
+ * @author Jason Feng
+ * @since 2026-03-24 15:21
+ */
+@Component
+public class KeyValueRpcService {
+
+    @Resource
+    private KeyValueFeignApi keyValueFeignApi;
+
+    /**
+     * 批量存储评论内容
+     * @param commentBOS
+     * @return
+     */
+    public boolean batchSaveCommentContent(List<CommentBO> commentBOS) {
+        List<CommentContentReqDTO> comments = Lists.newArrayList();
+
+        // BO 转 DTO
+        commentBOS.forEach(commentBO -> {
+            CommentContentReqDTO commentContentReqDTO = CommentContentReqDTO.builder()
+                    .noteId(commentBO.getNoteId())
+                    .content(commentBO.getContent())
+                    .contentId(commentBO.getContentUuid())
+                    .yearMonth(commentBO.getCreateTime().format(DateConstants.DATE_FORMAT_Y_M))
+                    .build();
+            comments.add(commentContentReqDTO);
+        });
+
+        // 构建接口入参实体类
+        BatchAddCommentContentReqDTO batchAddCommentContentReqDTO = BatchAddCommentContentReqDTO.builder()
+                .comments(comments)
+                .build();
+
+        // 调用 KV 存储服务
+        Result<?> response = keyValueFeignApi.batchAddCommentContent(batchAddCommentContentReqDTO);
+
+        // 若返参中 success 为 false, 则主动抛出异常，以便调用层回滚事务
+        if (!response.isSuccess()) {
+            throw new RuntimeException("批量保存评论内容失败");
+        }
+
+        return true;
+    }
+
+}

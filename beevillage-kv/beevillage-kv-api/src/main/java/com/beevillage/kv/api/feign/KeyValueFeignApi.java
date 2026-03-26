@@ -3,6 +3,7 @@ package com.beevillage.kv.api.feign;
 import com.beevillage.common.response.Result;
 import com.beevillage.kv.api.constant.ApiConstants;
 import com.beevillage.kv.api.dto.req.AddNoteContentReqDTO;
+import com.beevillage.kv.api.dto.req.BatchAddCommentContentReqDTO;
 import com.beevillage.kv.api.dto.req.DeleteNoteContentReqDTO;
 import com.beevillage.kv.api.dto.req.FindNoteContentReqDTO;
 import com.beevillage.kv.api.dto.rsp.FindNoteContentRspDTO;
@@ -29,4 +30,7 @@ public interface KeyValueFeignApi {
 
     @PostMapping(value = PREFIX + "/note/content/delete")
     Result<?> deleteNoteContent(@RequestBody DeleteNoteContentReqDTO deleteNoteContentReqDTO);
+
+    @PostMapping(value = PREFIX + "/comment/content/batchAdd")
+    Result<?> batchAddCommentContent(@RequestBody BatchAddCommentContentReqDTO batchAddCommentContentReqDTO);
 }

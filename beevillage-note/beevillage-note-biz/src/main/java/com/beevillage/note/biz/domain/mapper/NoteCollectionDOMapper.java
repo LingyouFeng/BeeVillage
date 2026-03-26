@@ -65,4 +65,11 @@ public interface NoteCollectionDOMapper {
      * @return
      */
     int update2UnCollectByUserIdAndNoteId(NoteCollectionDO noteCollectionDO);
+
+    /**
+     * 批量插入或更新
+     * @param noteCollectionDOS
+     * @return
+     */
+    int batchInsertOrUpdate(@Param("noteCollectionDOS") List<NoteCollectionDO> noteCollectionDOS);
 }

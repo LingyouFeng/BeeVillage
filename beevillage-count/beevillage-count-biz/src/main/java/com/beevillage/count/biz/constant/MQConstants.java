@@ -31,7 +31,7 @@ public interface  MQConstants {
     /**
      * Topic: 计数 - 笔记点赞数
      */
-    String TOPIC_COUNT_NOTE_LIKE = "CountNoteLikeTopic";
+    String TOPIC_LIKE_OR_UNLIKE = "LikeUnlikeTopic";
 
     /**
      * Topic: 计数 - 笔记点赞数落库
@@ -41,7 +41,7 @@ public interface  MQConstants {
     /**
      * Topic: 计数 - 笔记收藏数
      */
-    String TOPIC_COUNT_NOTE_COLLECT = "CountNoteCollectTopic";
+    String TOPIC_COLLECT_OR_UN_COLLECT = "CollectUnCollectTopic";
 
     /**
      * Topic: 计数 - 笔记收藏数落库
