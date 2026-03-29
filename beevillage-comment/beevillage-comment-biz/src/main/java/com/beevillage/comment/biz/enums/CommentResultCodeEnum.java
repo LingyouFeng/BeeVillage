@@ -13,6 +13,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum CommentResultCodeEnum implements BaseExceptionInterface {
 
+    COMMENT_NOT_FOUND(20001, "此评论不存在"),
     ;
 
     private final Integer code;

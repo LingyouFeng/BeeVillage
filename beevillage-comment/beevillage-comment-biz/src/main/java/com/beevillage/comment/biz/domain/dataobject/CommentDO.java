@@ -35,6 +35,8 @@ public class CommentDO {
 
     private Long replyTotal;
 
+    private Long childCommentTotal;
+
     private Long likeTotal;
 
     private Long parentId;
@@ -44,6 +46,10 @@ public class CommentDO {
     private Long replyUserId;
 
     private Boolean isTop;
+
+    private Long firstReplyCommentId;
+
+    private Double heat;
 
     private LocalDateTime createTime;
 

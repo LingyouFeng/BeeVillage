@@ -2,14 +2,14 @@ package com.beevillage.kv.api.feign;
 
 import com.beevillage.common.response.Result;
 import com.beevillage.kv.api.constant.ApiConstants;
-import com.beevillage.kv.api.dto.req.AddNoteContentReqDTO;
-import com.beevillage.kv.api.dto.req.BatchAddCommentContentReqDTO;
-import com.beevillage.kv.api.dto.req.DeleteNoteContentReqDTO;
-import com.beevillage.kv.api.dto.req.FindNoteContentReqDTO;
+import com.beevillage.kv.api.dto.req.*;
+import com.beevillage.kv.api.dto.rsp.FindCommentContentRspDTO;
 import com.beevillage.kv.api.dto.rsp.FindNoteContentRspDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
 
 /**
  * K-V 键值存储 Feign 接口
@@ -33,4 +33,7 @@ public interface KeyValueFeignApi {
 
     @PostMapping(value = PREFIX + "/comment/content/batchAdd")
     Result<?> batchAddCommentContent(@RequestBody BatchAddCommentContentReqDTO batchAddCommentContentReqDTO);
+
+    @PostMapping(value = PREFIX + "/comment/content/batchFind")
+    Result<List<FindCommentContentRspDTO>> batchFindCommentContent(@RequestBody BatchFindCommentContentReqDTO batchFindCommentContentReqDTO);
 }

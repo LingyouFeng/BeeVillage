@@ -11,11 +11,14 @@
         <result column="image_url" jdbcType="VARCHAR" property="imageUrl"/>
         <result column="level" jdbcType="TINYINT" property="level"/>
         <result column="reply_total" jdbcType="BIGINT" property="replyTotal"/>
+        <result column="child_comment_total" jdbcType="BIGINT" property="childCommentTotal"/>
         <result column="like_total" jdbcType="BIGINT" property="likeTotal"/>
         <result column="parent_id" jdbcType="BIGINT" property="parentId"/>
         <result column="reply_comment_id" jdbcType="BIGINT" property="replyCommentId"/>
         <result column="reply_user_id" jdbcType="BIGINT" property="replyUserId"/>
         <result column="is_top" jdbcType="TINYINT" property="isTop"/>
+        <result column="first_reply_comment_id" jdbcType="BIGINT" property="firstReplyCommentId" />
+        <result column="heat" jdbcType="DOUBLE" property="heat" />
         <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
         <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
     </resultMap>
@@ -23,7 +26,8 @@
     <sql id="Base_Column_List">
         id
         , note_id, user_id, content_uuid, is_content_empty, image_url, `level`, reply_total,
-    like_total, parent_id, reply_comment_id, reply_user_id, is_top, create_time, update_time
+        child_comment_total, like_total, parent_id, reply_comment_id, reply_user_id, is_top,
+        create_time, update_time
     </sql>
 
     <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
@@ -40,16 +44,16 @@
     </delete>
 
     <insert id="insert" parameterType="com.beevillage.comment.biz.domain.dataobject.CommentDO">
-        insert into t_comment (id, note_id, user_id,
-                               content_uuid, is_content_empty, image_url,
-                               `level`, reply_total, like_total,
-                               parent_id, reply_comment_id, reply_user_id,
+        insert into t_comment (id, note_id, user_id, content_uuid, is_content_empty,
+                               image_url, `level`, reply_total, child_comment_total,
+                               like_total, parent_id, reply_comment_id, reply_user_id,
                                is_top, create_time, update_time)
         values (#{id,jdbcType=BIGINT}, #{noteId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT},
                 #{contentUuid,jdbcType=VARCHAR}, #{isContentEmpty,jdbcType=BIT}, #{imageUrl,jdbcType=VARCHAR},
-                #{level,jdbcType=TINYINT}, #{replyTotal,jdbcType=BIGINT}, #{likeTotal,jdbcType=BIGINT},
-                #{parentId,jdbcType=BIGINT}, #{replyCommentId,jdbcType=BIGINT}, #{replyUserId,jdbcType=BIGINT},
-                #{isTop,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+                #{level,jdbcType=TINYINT}, #{replyTotal,jdbcType=BIGINT}, #{childCommentTotal,jdbcType=BIGINT},
+                #{likeTotal,jdbcType=BIGINT}, #{parentId,jdbcType=BIGINT}, #{replyCommentId,jdbcType=BIGINT},
+                #{replyUserId,jdbcType=BIGINT}, #{isTop,jdbcType=TINYINT}, #{createTime,jdbcType=TIMESTAMP},
+                #{updateTime,jdbcType=TIMESTAMP})
     </insert>
 
     <insert id="insertSelective" parameterType="com.beevillage.comment.biz.domain.dataobject.CommentDO">
@@ -78,6 +82,9 @@
             </if>
             <if test="replyTotal != null">
                 reply_total,
+            </if>
+            <if test="childCommentTotal != null">
+                child_comment_total,
             </if>
             <if test="likeTotal != null">
                 like_total,
@@ -125,6 +132,9 @@
             </if>
             <if test="replyTotal != null">
                 #{replyTotal,jdbcType=BIGINT},
+            </if>
+            <if test="childCommentTotal != null">
+                #{childCommentTotal,jdbcType=BIGINT},
             </if>
             <if test="likeTotal != null">
                 #{likeTotal,jdbcType=BIGINT},
@@ -174,6 +184,9 @@
             <if test="replyTotal != null">
                 reply_total = #{replyTotal,jdbcType=BIGINT},
             </if>
+            <if test="childCommentTotal != null">
+                child_comment_total = #{childCommentTotal,jdbcType=BIGINT},
+            </if>
             <if test="likeTotal != null">
                 like_total = #{likeTotal,jdbcType=BIGINT},
             </if>
@@ -201,26 +214,29 @@
 
     <update id="updateByPrimaryKey" parameterType="com.beevillage.comment.biz.domain.dataobject.CommentDO">
         update t_comment
-        set note_id          = #{noteId,jdbcType=BIGINT},
-            user_id          = #{userId,jdbcType=BIGINT},
-            content_uuid     = #{contentUuid,jdbcType=VARCHAR},
-            is_content_empty = #{isContentEmpty,jdbcType=BIT},
-            image_url        = #{imageUrl,jdbcType=VARCHAR},
-            `level`          = #{level,jdbcType=TINYINT},
-            reply_total      = #{replyTotal,jdbcType=BIGINT},
-            like_total       = #{likeTotal,jdbcType=BIGINT},
-            parent_id        = #{parentId,jdbcType=BIGINT},
-            reply_comment_id = #{replyCommentId,jdbcType=BIGINT},
-            reply_user_id    = #{replyUserId,jdbcType=BIGINT},
-            is_top           = #{isTop,jdbcType=TINYINT},
-            create_time      = #{createTime,jdbcType=TIMESTAMP},
-            update_time      = #{updateTime,jdbcType=TIMESTAMP}
+        set note_id             = #{noteId,jdbcType=BIGINT},
+            user_id             = #{userId,jdbcType=BIGINT},
+            content_uuid        = #{contentUuid,jdbcType=VARCHAR},
+            is_content_empty    = #{isContentEmpty,jdbcType=BIT},
+            image_url           = #{imageUrl,jdbcType=VARCHAR},
+            `level`             = #{level,jdbcType=TINYINT},
+            reply_total         = #{replyTotal,jdbcType=BIGINT},
+            child_comment_total = #{childCommentTotal,jdbcType=BIGINT},
+            like_total          = #{likeTotal,jdbcType=BIGINT},
+            parent_id           = #{parentId,jdbcType=BIGINT},
+            reply_comment_id    = #{replyCommentId,jdbcType=BIGINT},
+            reply_user_id       = #{replyUserId,jdbcType=BIGINT},
+            is_top              = #{isTop,jdbcType=TINYINT},
+            create_time         = #{createTime,jdbcType=TIMESTAMP},
+            update_time         = #{updateTime,jdbcType=TIMESTAMP}
         where id = #{id,jdbcType=BIGINT}
     </update>
 
     <select id="selectByCommentIds" resultMap="BaseResultMap" parameterType="list">
         select
-        id, level, parent_id, user_id
+            id, note_id, user_id, content_uuid, is_content_empty, image_url, like_total,
+            is_top, create_time, first_reply_comment_id, child_comment_total,
+            level, parent_id, heat
         from t_comment
         where id in
         <foreach collection="commentIds" open="(" separator="," close=")" item="commentId">
@@ -231,14 +247,63 @@
     <insert id="batchInsert" parameterType="list">
         insert IGNORE into t_comment (id, note_id, user_id,
                content_uuid, is_content_empty, image_url,
-               `level`, reply_total, like_total,
-               parent_id, reply_comment_id, reply_user_id,
-               is_top, create_time, update_ti)
+               `level`, reply_total, child_comment_total,
+               like_total, parent_id, reply_comment_id,
+               reply_user_id, is_top, create_time, update_time)
         values
         <foreach collection="comments" item="comment" separator=",">
-            (#{comment.id}, #{comment.noteId}, #{comment.userId}, #{comment.contentUuid}, #{comment.isContentEmpty}
-            , #{comment.imageUrl}, #{comment.level}, #{comment.replyTotal}, #{comment.likeTotal}, #{comment.parentId}
-            , #{comment.replyCommentId}, #{comment.replyUserId}, #{comment.isTop}, #{comment.createTime}, #{comment.updateTime})
+            (#{comment.id}, #{comment.noteId}, #{comment.userId}, #{comment.contentUuid},
+             #{comment.isContentEmpty}, #{comment.imageUrl}, #{comment.level}, #{comment.replyTotal},
+             #{comment.childCommentTotal}, #{comment.likeTotal}, #{comment.parentId}, #{comment.replyCommentId},
+             #{comment.replyUserId}, #{comment.isTop}, #{comment.createTime}, #{comment.updateTime})
         </foreach>
     </insert>
+
+    <update id="batchUpdateHeatByCommentIds" parameterType="map">
+        update t_comment
+        set heat = case id
+        <foreach collection="commentHeatBOS" item="bo" separator="">
+            when #{bo.id} then #{bo.heat}
+        </foreach>
+        else heat end
+        where id in
+        <foreach collection="commentIds" item="commentId" open="(" close=")" separator=",">
+            #{commentId}
+        </foreach>
+    </update>
+
+    <select id="selectEarliestByParentId" resultMap="BaseResultMap" parameterType="map">
+        select id from t_comment
+        where parent_id = #{parentId} and level = 2 order by create_time asc limit 1
+    </select>
+
+    <update id="updateFirstReplyCommentIdByPrimaryKey" parameterType="map">
+        update t_comment
+        set first_reply_comment_id = #{firstReplyCommentId}
+        where id = #{id}
+    </update>
+
+    <select id="selectPageList" resultMap="BaseResultMap" parameterType="map">
+        select id, user_id, content_uuid, is_content_empty, image_url, like_total,
+               is_top, create_time, first_reply_comment_id, child_comment_total, heat
+        from t_comment
+        where note_id = #{noteId} and level = 1 order by heat desc
+            limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectTwoLevelCommentByIds" resultMap="BaseResultMap" parameterType="list">
+        select
+        id, user_id, content_uuid, is_content_empty, image_url, like_total, create_time, heat
+        from t_comment
+        where id in
+        <foreach collection="commentIds" open="(" separator="," close=")" item="commentId">
+            #{commentId}
+        </foreach>
+    </select>
+
+    <select id="selectHeatComments" resultMap="BaseResultMap">
+        select id, heat
+        from t_comment
+        where note_id = #{noteId} and level = 1 order by heat desc limit 500
+    </select>
 </mapper>

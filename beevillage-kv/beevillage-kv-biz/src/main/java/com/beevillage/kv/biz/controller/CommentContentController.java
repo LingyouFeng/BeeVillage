@@ -2,6 +2,7 @@ package com.beevillage.kv.biz.controller;
 
 import com.beevillage.common.response.Result;
 import com.beevillage.kv.api.dto.req.BatchAddCommentContentReqDTO;
+import com.beevillage.kv.api.dto.req.BatchFindCommentContentReqDTO;
 import com.beevillage.kv.biz.service.CommentContentService;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
@@ -28,5 +29,10 @@ public class CommentContentController {
     @PostMapping(value = "/comment/content/batchAdd")
     public Result<?> batchAddCommentContent(@Valid @RequestBody BatchAddCommentContentReqDTO batchAddCommentContentReqDTO) {
         return commentContentService.batchAddCommentContent(batchAddCommentContentReqDTO);
+    }
+
+    @PostMapping(value = "/comment/content/batchFind")
+    public Result<?> batchFindCommentContent(@Valid @RequestBody BatchFindCommentContentReqDTO batchFindCommentContentReqDTO) {
+        return commentContentService.batchFindCommentContent(batchFindCommentContentReqDTO);
     }
 }

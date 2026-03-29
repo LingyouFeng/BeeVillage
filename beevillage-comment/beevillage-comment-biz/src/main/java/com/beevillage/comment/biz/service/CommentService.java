@@ -1,6 +1,9 @@
 package com.beevillage.comment.biz.service;
 
+import com.beevillage.comment.biz.model.vo.FindCommentItemRspVO;
+import com.beevillage.comment.biz.model.vo.FindCommentPageListReqVO;
 import com.beevillage.comment.biz.model.vo.PublishCommentReqVO;
+import com.beevillage.common.response.PageResult;
 import com.beevillage.common.response.Result;
 
 /**
@@ -17,4 +20,11 @@ public interface CommentService {
      * @return
      */
     Result<?> publishComment(PublishCommentReqVO publishCommentReqVO);
+
+    /**
+     * 评论列表分页查询
+     * @param findCommentPageListReqVO
+     * @return
+     */
+    PageResult<FindCommentItemRspVO> findCommentPageList(FindCommentPageListReqVO findCommentPageListReqVO);
 }

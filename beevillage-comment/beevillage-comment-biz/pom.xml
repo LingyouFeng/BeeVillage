@@ -37,6 +37,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.beevillage</groupId>
+            <artifactId>beevillage-user-api</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
@@ -122,6 +127,19 @@
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-client</artifactId>
             <version>${rocketmq-client.version}</version>
+        </dependency>
+
+        <!-- 快手 Buffer Trigger -->
+        <dependency>
+            <groupId>com.github.phantomthief</groupId>
+            <artifactId>buffer-trigger</artifactId>
+            <version>${buffertrigger.version}</version>
+        </dependency>
+
+        <!-- Caffeine 本地缓存 -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
         </dependency>
     </dependencies>
 

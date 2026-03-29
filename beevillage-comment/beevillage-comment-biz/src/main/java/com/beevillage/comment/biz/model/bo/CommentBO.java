@@ -36,6 +36,8 @@ public class CommentBO
 
     private Long replyTotal;
 
+    private Long childCommentTotal;
+
     private Long likeTotal;
 
     private Long parentId;

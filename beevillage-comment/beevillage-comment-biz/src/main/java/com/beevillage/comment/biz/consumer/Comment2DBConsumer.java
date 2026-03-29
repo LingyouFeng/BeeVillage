@@ -3,10 +3,12 @@ package com.beevillage.comment.biz.consumer;
 import cn.hutool.core.collection.CollUtil;
 import com.alibaba.fastjson.JSON;
 import com.beevillage.comment.biz.constant.MQConstants;
+import com.beevillage.comment.biz.constant.RedisKeyConstants;
 import com.beevillage.comment.biz.domain.dataobject.CommentDO;
 import com.beevillage.comment.biz.domain.mapper.CommentDOMapper;
 import com.beevillage.comment.biz.enums.CommentLevelEnum;
 import com.beevillage.comment.biz.model.bo.CommentBO;
+import com.beevillage.comment.biz.model.dto.CountPublishCommentMqDTO;
 import com.beevillage.comment.biz.model.dto.PublishCommentMqDTO;
 import com.beevillage.comment.biz.rpc.KeyValueRpcService;
 import com.google.common.collect.Lists;
@@ -20,17 +22,22 @@ import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.client.producer.SendCallback;
+import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +59,11 @@ public class Comment2DBConsumer {
     private TransactionTemplate transactionTemplate;
     @Resource
     private KeyValueRpcService keyValueRpcService;
+    @Resource
+    private RocketMQTemplate rocketMQTemplate;
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
+
 
     private DefaultMQPushConsumer consumer;
 
@@ -131,6 +143,7 @@ public class Comment2DBConsumer {
                             .updateTime(publishCommentMqDTO.getCreateTime())
                             .isTop(false)
                             .replyTotal(0L)
+                            .childCommentTotal(0L)
                             .likeTotal(0L)
                             .replyCommentId(0L)
                             .replyUserId(0L)
@@ -170,10 +183,10 @@ public class Comment2DBConsumer {
                 log.info("## 清洗后的 CommentBOS: {}", JSON.toJSONString(commentBOS));
 
                 // 编程式事务，保证整体操作的原子性
-                transactionTemplate.execute(status -> {
+                Integer insertedRows = transactionTemplate.execute(status -> {
                     try {
                         // 先批量存入评论元数据
-                        commentDOMapper.batchInsert(commentBOS);
+                        int count = commentDOMapper.batchInsert(commentBOS);
 
                         // 过滤出评论内容不为空的 BO
                         List<CommentBO> commentContentNotEmptyBOS = commentBOS.stream()
@@ -184,13 +197,46 @@ public class Comment2DBConsumer {
                             keyValueRpcService.batchSaveCommentContent(commentContentNotEmptyBOS);
                         }
 
-                        return true;
+                        return count;
                     } catch (Exception ex) {
                         status.setRollbackOnly(); // 标记事务为回滚
                         log.error("", ex);
                         throw ex;
                     }
                 });
+
+                // 如果批量插入的行数大于 0
+                if (Objects.nonNull(insertedRows) && insertedRows > 0) {
+                    // 构建发送给计数服务的 DTO 集合
+                    List<CountPublishCommentMqDTO> countPublishCommentMqDTOS = commentBOS.stream()
+                            .map(commentBO -> CountPublishCommentMqDTO.builder()
+                                    .noteId(commentBO.getNoteId())
+                                    .commentId(commentBO.getId())
+                                    .level(commentBO.getLevel())
+                                    .parentId(commentBO.getParentId())
+                                    .build())
+                            .toList();
+
+                    // 异步发送计数 MQ
+                    org.springframework.messaging.Message<String> message = MessageBuilder
+                            .withPayload(JSON.toJSONString(countPublishCommentMqDTOS)).build();
+
+                    // 同步一级评论到 Redis 热点评论 ZSET 中
+                    syncOneLevelComment2RedisZSet(commentBOS);
+
+                    // 异步发送 MQ 消息
+                    rocketMQTemplate.asyncSend(MQConstants.TOPIC_COUNT_NOTE_COMMENT, message, new SendCallback() {
+                        @Override
+                        public void onSuccess(SendResult sendResult) {
+                            log.info("==> 【计数: 评论发布】MQ 发送成功，SendResult: {}", sendResult);
+                        }
+
+                        @Override
+                        public void onException(Throwable throwable) {
+                            log.error("==> 【计数: 评论发布】MQ 发送异常: ", throwable);
+                        }
+                    });
+                }
 
                 // 手动 ACK，告诉 RocketMQ 这批次消息消费成功
                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
@@ -217,4 +263,37 @@ public class Comment2DBConsumer {
         }
     }
 
+    /**
+     * 同步一级评论到 Redis 热点评论 ZSET 中
+     *
+     * @param commentBOS
+     */
+    private void syncOneLevelComment2RedisZSet(List<CommentBO> commentBOS) {
+        // 过滤出一级评论，并按所属笔记进行分组，转换为一个 Map 字典
+        Map<Long, List<CommentBO>> commentIdAndBOListMap = commentBOS.stream()
+                .filter(commentBO -> Objects.equals(commentBO.getLevel(), CommentLevelEnum.ONE.getCode())) // 仅过滤一级评论
+                .collect(Collectors.groupingBy(CommentBO::getNoteId));
+
+        // 循环字典
+        commentIdAndBOListMap.forEach((noteId, commentBOList) -> {
+            // 构建 Redis 热点评论 ZSET Key
+            String key = RedisKeyConstants.buildCommentListKey(noteId);
+
+            DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+            // Lua 脚本路径
+            script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/add_hot_comments.lua")));
+            // 返回值类型
+            script.setResultType(Long.class);
+
+            // 构建执行 Lua 脚本所需的 ARGS 参数
+            List<Object> args = Lists.newArrayList();
+            commentBOList.forEach(commentBO -> {
+                args.add(commentBO.getId()); // Member: 评论ID
+                args.add(0); // Score: 热度值，初始值为 0
+            });
+
+            // 执行 Lua 脚本
+            redisTemplate.execute(script, Collections.singletonList(key), args.toArray());
+        });
+    }
 }
