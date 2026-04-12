@@ -50,7 +50,7 @@ public class LikeUnlikeNoteConsumer {
     @Bean(name = "LikeUnlikeNoteConsumer")
     public DefaultMQPushConsumer mqPushConsumer() throws MQClientException {
         // Group 组
-        String group = "beevillage_group_" + MQConstants.TOPIC_LIKE_OR_UNLIKE;
+        String group = "beevillage_group1_" + MQConstants.TOPIC_LIKE_OR_UNLIKE;
 
         // 创建一个新的 DefaultMQPushConsumer 实例，并指定消费者的消费组名
         consumer = new DefaultMQPushConsumer(group);

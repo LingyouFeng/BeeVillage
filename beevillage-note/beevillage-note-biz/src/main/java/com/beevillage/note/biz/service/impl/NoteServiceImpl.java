@@ -723,17 +723,30 @@ public class NoteServiceImpl implements NoteService {
         // 当前登录用户ID
         Long userId = LoginUserContextHolder.getUserId();
 
-        // 布隆过滤器 Key
-        String bloomUserNoteLikeListKey = RedisKeyConstants.buildBloomUserNoteLikeListKey(userId);
+        // // 布隆过滤器 Key
+        // String bloomUserNoteLikeListKey = RedisKeyConstants.buildBloomUserNoteLikeListKey(userId);
+        //
+        // DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        // // Lua 脚本路径
+        // script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/bloom_note_like_check.lua")));
+        // // 返回值类型
+        // script.setResultType(Long.class);
+        //
+        // // 执行 Lua 脚本，拿到返回结果
+        // Long result = redisTemplate.execute(script, Collections.singletonList(bloomUserNoteLikeListKey), noteId);
+
+
+        // Roaring Bitmap Key
+        String rbitmapUserNoteLikeListKey = RedisKeyConstants.buildRBitmapUserNoteLikeListKey(userId);
 
         DefaultRedisScript<Long> script = new DefaultRedisScript<>();
         // Lua 脚本路径
-        script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/bloom_note_like_check.lua")));
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/rbitmap_note_like_check.lua")));
         // 返回值类型
         script.setResultType(Long.class);
 
         // 执行 Lua 脚本，拿到返回结果
-        Long result = redisTemplate.execute(script, Collections.singletonList(bloomUserNoteLikeListKey), noteId);
+        Long result = redisTemplate.execute(script, Collections.singletonList(rbitmapUserNoteLikeListKey), noteId);
 
         NoteLikeLuaResultEnum noteLikeLuaResultEnum = NoteLikeLuaResultEnum.valueOf(result);
 
@@ -741,9 +754,35 @@ public class NoteServiceImpl implements NoteService {
         String userNoteLikeZSetKey = RedisKeyConstants.buildUserNoteLikeZSetKey(userId);
 
         switch (noteLikeLuaResultEnum) {
-            // Redis 中布隆过滤器不存在
+            // // Redis 中布隆过滤器不存在
+            // case NOT_EXIST -> {
+            //     // 从数据库中校验笔记是否被点赞，并异步初始化布隆过滤器，设置过期时间
+            //     int count = noteLikeDOMapper.selectCountByUserIdAndNoteId(userId, noteId);
+            //
+            //     // 保底1天+随机秒数
+            //     long expireSeconds = 60*60*24 + RandomUtil.randomInt(60*60*24);
+            //
+            //     // 目标笔记已经被点赞
+            //     if (count > 0) {
+            //         // 异步初始化布隆过滤器
+            //         threadPoolTaskExecutor.submit(() ->
+            //                 batchAddNoteLike2BloomAndExpire(userId, expireSeconds, bloomUserNoteLikeListKey));
+            //         throw new BusinessException(NoteResultCodeEnum.NOTE_ALREADY_LIKED);
+            //     }
+            //
+            //     // 若目标笔记未被点赞，查询当前用户是否有点赞其他笔记，有则同步初始化布隆过滤器
+            //     batchAddNoteLike2BloomAndExpire(userId, expireSeconds, bloomUserNoteLikeListKey);
+            //
+            //     // 添加当前点赞笔记 ID 到布隆过滤器中
+            //     // Lua 脚本路径
+            //     script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/bloom_add_note_like_and_expire.lua")));
+            //     // 返回值类型
+            //     script.setResultType(Long.class);
+            //     redisTemplate.execute(script, Collections.singletonList(bloomUserNoteLikeListKey), noteId, expireSeconds);
+            // }
+            // Redis 中 Roaring Bitmap 不存在
             case NOT_EXIST -> {
-                // 从数据库中校验笔记是否被点赞，并异步初始化布隆过滤器，设置过期时间
+                // 从数据库中校验笔记是否被点赞，并异步初始化 Roaring Bitmap，设置过期时间
                 int count = noteLikeDOMapper.selectCountByUserIdAndNoteId(userId, noteId);
 
                 // 保底1天+随机秒数
@@ -753,37 +792,38 @@ public class NoteServiceImpl implements NoteService {
                 if (count > 0) {
                     // 异步初始化布隆过滤器
                     threadPoolTaskExecutor.submit(() ->
-                            batchAddNoteLike2BloomAndExpire(userId, expireSeconds, bloomUserNoteLikeListKey));
+                            batchAddNoteLike2RBitmapAndExpire(userId, expireSeconds, rbitmapUserNoteLikeListKey));
                     throw new BusinessException(NoteResultCodeEnum.NOTE_ALREADY_LIKED);
                 }
 
-                // 若目标笔记未被点赞，查询当前用户是否有点赞其他笔记，有则同步初始化布隆过滤器
-                batchAddNoteLike2BloomAndExpire(userId, expireSeconds, bloomUserNoteLikeListKey);
+                // 若目标笔记未被点赞，查询当前用户是否有点赞其他笔记，有则同步初始化 Roaring Bitmap
+                batchAddNoteLike2RBitmapAndExpire(userId, expireSeconds, rbitmapUserNoteLikeListKey);
 
-                // 添加当前点赞笔记 ID 到布隆过滤器中
+                // 添加当前点赞笔记 ID 到 Roaring Bitmap 中
                 // Lua 脚本路径
-                script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/bloom_add_note_like_and_expire.lua")));
+                script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/rbitmap_add_note_like_and_expire.lua")));
                 // 返回值类型
                 script.setResultType(Long.class);
-                redisTemplate.execute(script, Collections.singletonList(bloomUserNoteLikeListKey), noteId, expireSeconds);
+                redisTemplate.execute(script, Collections.singletonList(rbitmapUserNoteLikeListKey), noteId, expireSeconds);
             }
             // 目标笔记已经被点赞 (可能存在误判，需要进一步确认)
             case NOTE_LIKED -> {
-                // 校验 ZSet 列表中是否包含被点赞的笔记ID
-                Double score = redisTemplate.opsForZSet().score(userNoteLikeZSetKey, noteId);
-
-                if (Objects.nonNull(score)) {
-                    throw new BusinessException(NoteResultCodeEnum.NOTE_ALREADY_LIKED);
-                }
-
-                // 若 Score 为空，则表示 ZSet 点赞列表中不存在，查询数据库校验
-                int count = noteLikeDOMapper.selectNoteIsLiked(userId, noteId);
-
-                if (count > 0) {
-                    // 数据库里面有点赞记录，而 Redis 中 ZSet 不存在，需要重新异步初始化 ZSet
-                    asynInitUserNoteLikesZSet(userId, userNoteLikeZSetKey);
-                    throw new BusinessException(NoteResultCodeEnum.NOTE_ALREADY_LIKED);
-                }
+                // // 校验 ZSet 列表中是否包含被点赞的笔记ID
+                // Double score = redisTemplate.opsForZSet().score(userNoteLikeZSetKey, noteId);
+                //
+                // if (Objects.nonNull(score)) {
+                //     throw new BusinessException(NoteResultCodeEnum.NOTE_ALREADY_LIKED);
+                // }
+                //
+                // // 若 Score 为空，则表示 ZSet 点赞列表中不存在，查询数据库校验
+                // int count = noteLikeDOMapper.selectNoteIsLiked(userId, noteId);
+                //
+                // if (count > 0) {
+                //     // 数据库里面有点赞记录，而 Redis 中 ZSet 不存在，需要重新异步初始化 ZSet
+                //     asynInitUserNoteLikesZSet(userId, userNoteLikeZSetKey);
+                //     throw new BusinessException(NoteResultCodeEnum.NOTE_ALREADY_LIKED);
+                // }
+                throw new BusinessException(NoteResultCodeEnum.NOTE_ALREADY_LIKED);
             }
         }
 
@@ -936,6 +976,35 @@ public class NoteServiceImpl implements NoteService {
     }
 
     /**
+     * 初始化笔记点赞 Roaring Bitmap
+     * @param userId
+     * @param expireSeconds
+     * @param rbitmapUserNoteLikeListKey
+     */
+    private void batchAddNoteLike2RBitmapAndExpire(Long userId, long expireSeconds, String rbitmapUserNoteLikeListKey) {
+        try {
+            // 异步全量同步一下，并设置过期时间
+            List<NoteLikeDO> noteLikeDOS = noteLikeDOMapper.selectByUserId(userId);
+
+            if (CollUtil.isNotEmpty(noteLikeDOS)) {
+                DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+                // Lua 脚本路径
+                script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/rbitmap_batch_add_note_like_and_expire.lua")));
+                // 返回值类型
+                script.setResultType(Long.class);
+
+                // 构建 Lua 参数
+                List<Object> luaArgs = Lists.newArrayList();
+                noteLikeDOS.forEach(noteLikeDO -> luaArgs.add(noteLikeDO.getNoteId())); // 将每个点赞的笔记 ID 传入
+                luaArgs.add(expireSeconds);  // 最后一个参数是过期时间（秒）
+                redisTemplate.execute(script, Collections.singletonList(rbitmapUserNoteLikeListKey), luaArgs.toArray());
+            }
+        } catch (Exception e) {
+            log.error("## 异步初始化【笔记点赞】Roaring Bitmap 异常: ", e);
+        }
+    }
+
+    /**
      * 构建 Lua 脚本参数
      *
      * @param noteLikeDOS
@@ -1007,28 +1076,57 @@ public class NoteServiceImpl implements NoteService {
         // 当前登录用户ID
         Long userId = LoginUserContextHolder.getUserId();
 
-        // 布隆过滤器 Key
-        String bloomUserNoteLikeListKey = RedisKeyConstants.buildBloomUserNoteLikeListKey(userId);
+        // // 布隆过滤器 Key
+        // String bloomUserNoteLikeListKey = RedisKeyConstants.buildBloomUserNoteLikeListKey(userId);
+        //
+        // DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        // // Lua 脚本路径
+        // script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/bloom_note_unlike_check.lua")));
+        // // 返回值类型
+        // script.setResultType(Long.class);
+        //
+        // // 执行 Lua 脚本，拿到返回结果
+        // Long result = redisTemplate.execute(script, Collections.singletonList(bloomUserNoteLikeListKey), noteId);
+
+        // Roaring Bitmap Key
+        String rbitmapUserNoteLikeListKey = RedisKeyConstants.buildRBitmapUserNoteLikeListKey(userId);
 
         DefaultRedisScript<Long> script = new DefaultRedisScript<>();
         // Lua 脚本路径
-        script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/bloom_note_unlike_check.lua")));
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/rbitmap_note_unlike_check.lua")));
         // 返回值类型
         script.setResultType(Long.class);
 
         // 执行 Lua 脚本，拿到返回结果
-        Long result = redisTemplate.execute(script, Collections.singletonList(bloomUserNoteLikeListKey), noteId);
+        Long result = redisTemplate.execute(script, Collections.singletonList(rbitmapUserNoteLikeListKey), noteId);
 
         NoteUnlikeLuaResultEnum noteUnlikeLuaResultEnum = NoteUnlikeLuaResultEnum.valueOf(result);
 
         switch (noteUnlikeLuaResultEnum) {
-            // 布隆过滤器不存在
+            // // 布隆过滤器不存在
+            // case NOT_EXIST -> {
+            //     // 异步初始化布隆过滤器
+            //     threadPoolTaskExecutor.submit(() -> {
+            //         // 保底1天+随机秒数
+            //         long expireSeconds = 60*60*24 + RandomUtil.randomInt(60*60*24);
+            //         batchAddNoteLike2BloomAndExpire(userId, expireSeconds, bloomUserNoteLikeListKey);
+            //     });
+            //
+            //     // 从数据库中校验笔记是否被点赞
+            //     int count = noteLikeDOMapper.selectCountByUserIdAndNoteId(userId, noteId);
+            //
+            //     // 未点赞，无法取消点赞操作，抛出业务异常
+            //     if (count == 0) throw new BusinessException(NoteResultCodeEnum.NOTE_NOT_LIKED);
+            // }
+            // // 布隆过滤器校验目标笔记未被点赞（判断绝对正确）
+            // case NOTE_NOT_LIKED -> throw new BusinessException(NoteResultCodeEnum.NOTE_NOT_LIKED);
+            // Roaring Bitmap 不存在
             case NOT_EXIST -> {
-                // 异步初始化布隆过滤器
+                // 异步初始化 Roaring Bitmap
                 threadPoolTaskExecutor.submit(() -> {
                     // 保底1天+随机秒数
                     long expireSeconds = 60*60*24 + RandomUtil.randomInt(60*60*24);
-                    batchAddNoteLike2BloomAndExpire(userId, expireSeconds, bloomUserNoteLikeListKey);
+                    batchAddNoteLike2RBitmapAndExpire(userId, expireSeconds, rbitmapUserNoteLikeListKey);
                 });
 
                 // 从数据库中校验笔记是否被点赞
@@ -1037,7 +1135,7 @@ public class NoteServiceImpl implements NoteService {
                 // 未点赞，无法取消点赞操作，抛出业务异常
                 if (count == 0) throw new BusinessException(NoteResultCodeEnum.NOTE_NOT_LIKED);
             }
-            // 布隆过滤器校验目标笔记未被点赞（判断绝对正确）
+            // Roaring Bitmap 校验目标笔记未被点赞
             case NOTE_NOT_LIKED -> throw new BusinessException(NoteResultCodeEnum.NOTE_NOT_LIKED);
         }
 
