@@ -36,4 +36,8 @@ public interface KeyValueFeignApi {
 
     @PostMapping(value = PREFIX + "/comment/content/batchFind")
     Result<List<FindCommentContentRspDTO>> batchFindCommentContent(@RequestBody BatchFindCommentContentReqDTO batchFindCommentContentReqDTO);
+
+    @PostMapping(value = PREFIX + "/comment/content/delete")
+    Result<?> deleteCommentContent(@RequestBody DeleteCommentContentReqDTO deleteCommentContentReqDTO);
+
 }

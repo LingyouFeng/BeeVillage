@@ -3,10 +3,12 @@ package com.beevillage.kv.biz.controller;
 import com.beevillage.common.response.Result;
 import com.beevillage.kv.api.dto.req.BatchAddCommentContentReqDTO;
 import com.beevillage.kv.api.dto.req.BatchFindCommentContentReqDTO;
+import com.beevillage.kv.api.dto.req.DeleteCommentContentReqDTO;
 import com.beevillage.kv.biz.service.CommentContentService;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,5 +36,10 @@ public class CommentContentController {
     @PostMapping(value = "/comment/content/batchFind")
     public Result<?> batchFindCommentContent(@Valid @RequestBody BatchFindCommentContentReqDTO batchFindCommentContentReqDTO) {
         return commentContentService.batchFindCommentContent(batchFindCommentContentReqDTO);
+    }
+
+    @PostMapping(value = "/comment/content/delete")
+    public Result<?> deleteCommentContent(@Validated @RequestBody DeleteCommentContentReqDTO deleteCommentContentReqDTO) {
+        return commentContentService.deleteCommentContent(deleteCommentContentReqDTO);
     }
 }

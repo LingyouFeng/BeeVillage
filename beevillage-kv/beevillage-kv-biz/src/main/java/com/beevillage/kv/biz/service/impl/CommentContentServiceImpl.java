@@ -2,10 +2,7 @@ package com.beevillage.kv.biz.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import com.beevillage.common.response.Result;
-import com.beevillage.kv.api.dto.req.BatchAddCommentContentReqDTO;
-import com.beevillage.kv.api.dto.req.BatchFindCommentContentReqDTO;
-import com.beevillage.kv.api.dto.req.CommentContentReqDTO;
-import com.beevillage.kv.api.dto.req.FindCommentContentReqDTO;
+import com.beevillage.kv.api.dto.req.*;
 import com.beevillage.kv.api.dto.rsp.FindCommentContentRspDTO;
 import com.beevillage.kv.biz.domain.dataobject.CommentContentDO;
 import com.beevillage.kv.biz.domain.dataobject.CommentContentPrimaryKey;
@@ -113,5 +110,24 @@ public class CommentContentServiceImpl implements CommentContentService {
         }
 
         return Result.success(findCommentContentRspDTOS);
+    }
+
+    /**
+     * 删除评论内容
+     *
+     * @param deleteCommentContentReqDTO
+     * @return
+     */
+    @Override
+    public Result<?> deleteCommentContent(DeleteCommentContentReqDTO deleteCommentContentReqDTO) {
+        Long noteId = deleteCommentContentReqDTO.getNoteId();
+        String yearMonth = deleteCommentContentReqDTO.getYearMonth();
+        String contentId = deleteCommentContentReqDTO.getContentId();
+
+        // 删除评论正文
+        commentContentRepository.deleteByPrimaryKeyNoteIdAndPrimaryKeyYearMonthAndPrimaryKeyContentId(
+                noteId, yearMonth, UUID.fromString(contentId));
+
+        return Result.success();
     }
 }

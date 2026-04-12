@@ -2,6 +2,7 @@ package com.beevillage.comment.biz.domain.mapper;
 
 import com.beevillage.comment.biz.domain.dataobject.NoteCountDO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface NoteCountDOMapper {
@@ -24,4 +25,13 @@ public interface NoteCountDOMapper {
      * @return
      */
     Long selectCommentTotalByNoteId(Long noteId);
+
+    /**
+     * 更新评论总数
+     * @param noteId
+     * @param count
+     * @return
+     */
+    int updateCommentTotalByNoteId(@Param("noteId") Long noteId,
+                                   @Param("count") int count);
 }
